@@ -27,6 +27,17 @@ class TelegramController extends Controller
         $telegramId = $result->message->chat->id;
         $text = $result->message->text;
 
+        // Temporary user validation for development
+        if ($telegramId != "789700107") {
+            $this->apiRequest('sendMessage', [
+                'chat_id' => $telegramId,
+                'text' => 'You are not allowed to use this bot. ~Zul',
+                'parse_mode' => 'html',
+            ]);
+
+            return;
+        }
+
         $this->apiRequest('sendChatAction', [
             'chat_id' => $telegramId,
             'action' => 'typing',
