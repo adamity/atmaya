@@ -28,10 +28,12 @@ class TelegramController extends Controller
         $telegramId = $result->message->chat->id;
         $text = $result->message->text;
 
-        $tr = new GoogleTranslate(); // Translates to 'en' from auto-detected language by default
-        $tr->setSource('ms'); // Translate from Malay
-        $tr->setTarget('en'); // Translate to English
-        $humanTextTranslated = $tr->translate($text);
+        // Disable for now
+        // $tr = new GoogleTranslate(); // Translates to 'en' from auto-detected language by default
+        // $tr->setSource('ms'); // Translate from Malay
+        // $tr->setTarget('en'); // Translate to English
+        // $humanTextTranslated = $tr->translate($text);
+        $humanTextTranslated = $text;
 
         // Temporary user validation for development
         if ($telegramId != "789700107") {
@@ -80,9 +82,11 @@ class TelegramController extends Controller
 
         $complete = json_decode($data);
 
-        $tr->setSource('en'); // Translate from English
-        $tr->setTarget('ms'); // Translate to Malay
-        $AITextTranslated = $tr->translate($complete->choices[0]->text);
+        // Disable for now
+        // $tr->setSource('en'); // Translate from English
+        // $tr->setTarget('ms'); // Translate to Malay
+        // $AITextTranslated = $tr->translate($complete->choices[0]->text);
+        $AITextTranslated = $complete->choices[0]->text;
 
         $response = $this->apiRequest('sendMessage', [
             'chat_id' => $telegramId,
