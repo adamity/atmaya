@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TelegramBot;
+use App\Models\TelegramUser;
 use App\Traits\RequestTrait;
 use Illuminate\Http\Request;
 use Orhanerday\OpenAi\OpenAi;
@@ -27,6 +29,10 @@ class TelegramController extends Controller
 
         $telegramId = $result->message->chat->id;
         $text = $result->message->text;
+
+        // Simple tele user registration
+        $telegramUser = TelegramUser::firstOrCreate(['telegram_id' => $telegramId]);
+        TelegramBot::firstOrCreate(['telegram_user_id' => $telegramUser->id]);
 
         // Disable for now
         // $tr = new GoogleTranslate(); // Translates to 'en' from auto-detected language by default
