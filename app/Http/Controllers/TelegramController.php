@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Message;
 use App\Models\TelegramBot;
 use App\Models\TelegramUser;
 use App\Traits\RequestTrait;
@@ -30,9 +31,17 @@ class TelegramController extends Controller
         $telegramId = $result->message->chat->id;
         $text = $result->message->text;
 
-        // Simple tele user registration
+        // Simple telegram user registration
         $telegramUser = TelegramUser::firstOrCreate(['telegram_id' => $telegramId]);
-        TelegramBot::firstOrCreate(['telegram_user_id' => $telegramUser->id]);
+        $telegramBot = TelegramBot::firstOrCreate(['telegram_user_id' => $telegramUser->id]);
+
+        // Last 7 messages
+        $messages = Message::where([['sender_id', $telegramUser->id], ['receiver_id', $telegramBot->id]])
+            ->orWhere([['sender_id', $telegramBot->id], ['receiver_id', $telegramUser->id]])
+            ->orderBy('id', 'desc')
+            ->take(11)
+            ->get();
+        $messages = $messages->sortBy('id');
 
         // Disable for now
         // $tr = new GoogleTranslate(); // Translates to 'en' from auto-detected language by default
@@ -68,13 +77,19 @@ class TelegramController extends Controller
         // TODO: Create table for storing user's messages and separate the context from the message
         $prompt = "The following is a conversation with an AI companion named " . $biodata['fullname'] . " can be called " . $biodata['nickname'] . ".";
         $prompt .= "The companion is " . $biodata['characteristic'] . " whose primary goal is " . $biodata['goals'] . ".\n\n";
-        $prompt .= "Human: How dare u threaten me\n";
-        $prompt .= "AI: Don't be afraid\n";
-        $prompt .= "Human: Who said i'm afraid\n";
-        $prompt .= "AI: Emotions can be difficult to understand, they serve a variety of purposes.\n";
-        $prompt .= "Human: What is ur name\n";
-        $prompt .= "AI: My name is Atmaya Kyo\n";
+        foreach ($messages as $conversation) {
+            $prompt .= $conversation->sender_type == 'telegram_user' ? 'Human: ' : 'AI: ';
+            $prompt .= trim($conversation->message) . "\n";
+        }
         $prompt .= "Human: " . $humanTextTranslated . "\nAI:";
+
+        // Store the user's message
+        Message::create([
+            'sender_id' => $telegramUser->id,
+            'receiver_id' => $telegramBot->id,
+            'sender_type' => 'telegram_user',
+            'message' => $text,
+        ]);
 
         $data = $open_ai->complete([
             'engine' => 'davinci',
@@ -94,12 +109,20 @@ class TelegramController extends Controller
         // $AITextTranslated = $tr->translate($complete->choices[0]->text);
         $AITextTranslated = $complete->choices[0]->text;
 
+        // Store the AI's message
+        Message::create([
+            'sender_id' => $telegramBot->id,
+            'receiver_id' => $telegramUser->id,
+            'sender_type' => 'telegram_bot',
+            'message' => $AITextTranslated,
+        ]);
+
         $response = $this->apiRequest('sendMessage', [
             'chat_id' => $telegramId,
             'text' => $AITextTranslated,
             'parse_mode' => 'html',
         ]);
 
-        return $complete;
+        return $prompt;
     }
 }
