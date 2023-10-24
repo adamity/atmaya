@@ -42,6 +42,9 @@ trait CommandTrait
                 ["text" => "👨‍💻 Customer Service"],
                 ["text" => "👩‍⚕️ Preconsult"],
             ],
+            [
+                ["text" => "🤖 Quick Response"],
+            ],
         ];
 
         $params['chat_id'] = $telegramId;
@@ -70,7 +73,31 @@ trait CommandTrait
 
         $params['chat_id'] = $telegramId;
         $params['parse_mode'] = 'html';
-        $params['text'] = $this->rephraseSentence("Hello! How can we assist you with our product or any questions you have today?");
+        $params['text'] = $this->rephraseSentence("Hello! How can we assist you with our product?");
+        $params['reply_markup'] = $this->keyboardButton($option);
+
+        return $this->apiRequest($method, $params);
+    }
+
+    private function startQuickResponse($request)
+    {
+        $telegramId = $this->getTelegramId($request);
+        $teleUser = TelegramUser::where('telegram_id', $telegramId)->first();
+
+        $teleUser->mode = "quick_response";
+        $teleUser->save();
+
+        $method = "sendMessage";
+
+        $option = [
+            [
+                ["text" => "❌ Cancel"],
+            ],
+        ];
+
+        $params['chat_id'] = $telegramId;
+        $params['parse_mode'] = 'html';
+        $params['text'] = $this->rephraseSentence("Hello! Do you have any medical questions?");
         $params['reply_markup'] = $this->keyboardButton($option);
 
         return $this->apiRequest($method, $params);
@@ -125,6 +152,12 @@ trait CommandTrait
         if ($action == "/cancel" || $action == '❌ Cancel') {
             $response = $this->cancelOperation($request);
         } else if ($teleUser->mode == "customer_service") {
+            $response = $this->apiRequest('sendMessage', [
+                'chat_id' => $telegramId,
+                'text' => $this->customerSupport($action),
+                'parse_mode' => 'html',
+            ]);
+        } else if ($teleUser->mode == "quick_response") {
             $response = $this->apiRequest('sendMessage', [
                 'chat_id' => $telegramId,
                 'text' => $this->chatbotResponse($action),
@@ -183,6 +216,7 @@ trait CommandTrait
         $telegramId = $this->getTelegramId($request);
         $teleUser = TelegramUser::where('telegram_id', $telegramId)->first();
 
+        $message = $teleUser->mode ? "Operation cancelled. What would you like to do?" : "No active operation. What would you like to do?";
         $teleUser->mode = null;
         $teleUser->curr_question_index = null;
         $teleUser->answer_1 = null;
@@ -192,7 +226,7 @@ trait CommandTrait
         $teleUser->answer_5 = null;
         $teleUser->save();
 
-        return $this->getCommands($request, null);
+        return $this->getCommands($request, $message);
     }
 
     private function submitReport($teleUser, $request)

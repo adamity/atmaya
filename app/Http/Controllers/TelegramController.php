@@ -50,10 +50,10 @@ class TelegramController extends Controller
             $response = $this->updateSession($request);
         } else switch ($action) {
             case '/start':
-                $response = $this->getCommands($request, null);
+                $response = $this->getCommands($request, "Welcome to MyPocketDoc! I'm your friendly chatbot, we're here to make healthcare accessible and easy for you. Here's how our friendly bot can assist:");
                 break;
             case '/help':
-                $response = $this->getCommands($request, null);
+                $response = $this->getCommands($request, "We're here to make healthcare accessible and easy for you. Here's how our friendly bot can assist:");
                 break;
             case '/customer_service':
             case '👨‍💻 Customer Service':
@@ -63,12 +63,16 @@ class TelegramController extends Controller
             case '👩‍⚕️ Preconsult':
                 $response = $this->startPreconsult($request);
                 break;
+            case '/quick_response':
+            case '🤖 Quick Response':
+                $response = $this->startQuickResponse($request);
+                break;
             case '/cancel':
             case '❌ Cancel':
                 $response = $this->cancelOperation($request);
                 break;
             default:
-                $response = $this->getCommands($request, null);
+                $response = $this->getCommands($request, "Sorry, I don't understand your command. Here's how our friendly bot can assist:");
                 break;
         }
 

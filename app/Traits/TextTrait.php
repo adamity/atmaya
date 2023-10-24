@@ -2,14 +2,20 @@
 
 namespace App\Traits;
 
+use App\Traits\NLPTrait;
+
 trait TextTrait
 {
-    private function commandText($text = null)
+    use NLPTrait;
+
+    private function commandText($text = "Here's how our friendly bot can assist:")
     {
-        $message = "<b>Commands :</b> \n\n";
-        $message .= "/customer_service - ask us anything about our product\n";
-        $message .= "/preconsult - start preconsult\n";
-        if ($text) $message = $text . "\n\n" . $message;
+        $message = $this->rephraseSentence($text) . "\n\n\n";
+        $message .= "👨‍💻 Customer Service: /customer_service\n- Have questions about our product or services? Feel free to ask us anything, and we'll be happy to help you out.\n\n";
+        $message .= "👩‍⚕️ Preconsult: /quick_response\n- Got simple medical questions on your mind? Ask away, and we'll provide quick, reliable answers.\n\n";
+        $message .= "🤖 Quick Response: /preconsult\n- Ready to start your preconsultation? Let's get the process going.\n\n";
+        $message .= "❌ Cancel: /cancel\n- Cancel any ongoing operation.\n\n\n";
+        $message .= $this->rephraseSentence("Our aim is to bring you convenient healthcare solutions, anytime and anywhere.");
         return $message;
     }
 }
