@@ -15,12 +15,18 @@ trait CommandTrait
     use TextTrait;
     use NLPTrait;
 
+    //     "What symptoms or health concerns are you experiencing today?",
+    //     "How recently did these symptoms start? Please provide a timeframe or number of days.",
+    //     "Have you had a similar issue in the past?",
+    //     "Are you currently taking any medications or supplements?",
+    //     "Do you have any known allergies or intolerances?",
+
     const QUESTIONS = [
-        "What symptoms or health concerns are you experiencing today?",
-        "How recently did these symptoms start? Please provide a timeframe or number of days.",
-        "Have you had a similar issue in the past?",
-        "Are you currently taking any medications or supplements?",
-        "Do you have any known allergies or intolerances?",
+        "Can you describe the symptoms you're currently experiencing in detail?",
+        "When did these symptoms first start appearing?",
+        "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
+        "Are you currently taking any medications or do you have any known allergies?",
+        "Do you have any pre-existing medical conditions?",
     ];
 
     private function getCommands($request, $text)
@@ -98,11 +104,7 @@ trait CommandTrait
             'action' => 'typing',
         ]);
 
-        return $this->apiRequest('sendMessage', [
-            'chat_id' => $telegramId,
-            'text' => $this->rephraseSentence(self::QUESTIONS[$teleUser->curr_question_index]),
-            'parse_mode' => 'html',
-        ]);
+        return $this->sendQuestion($teleUser);
     }
 
     private function updateSession($request)
@@ -126,7 +128,6 @@ trait CommandTrait
                 eval('$teleUser->answer_' . ($teleUser->curr_question_index + 1) . ' = $action;');
                 $teleUser->curr_question_index += 1;
                 $teleUser->save();
-                $append = "Question " . ($teleUser->curr_question_index) . "/" . count(self::QUESTIONS) . "\n\n";
 
                 if ($teleUser->curr_question_index == count(self::QUESTIONS)) {
                     $response = $this->apiRequest('sendMessage', [
@@ -135,26 +136,29 @@ trait CommandTrait
                         'parse_mode' => 'html',
                     ]);
 
-                    // TODO: Generate report and send to doctor
-                    // $this->cancelOperation($request);
+                    $this->submitReport($teleUser, $request);
                 } else {
-                    $response = $this->apiRequest('sendMessage', [
-                        'chat_id' => $telegramId,
-                        'text' => $append . $this->rephraseSentence(self::QUESTIONS[$teleUser->curr_question_index]),
-                        'parse_mode' => 'html',
-                    ]);
+                    $response = $this->sendQuestion($teleUser);
                 }
             } else {
-                $append = "Question " . ($teleUser->curr_question_index) . "/" . count(self::QUESTIONS) . "\n\n" . $this->rephraseSentence("I'm sorry, but you are not answering the question.");
-                $response = $this->apiRequest('sendMessage', [
-                    'chat_id' => $telegramId,
-                    'text' => $append . ' ' . $this->rephraseSentence(self::QUESTIONS[$teleUser->curr_question_index]),
-                    'parse_mode' => 'html',
-                ]);
+                $response = $this->sendQuestion($teleUser, "I'm sorry, but you are not answering the question.");
             }
         }
 
         return $response;
+    }
+
+    private function sendQuestion($teleUser, $text = null)
+    {
+        $question_num = $teleUser->curr_question_index + 1;
+        $append = "<i>Question " . $question_num . "/" . count(self::QUESTIONS) . "</i>\n\n";
+        if ($text) $append .= $this->rephraseSentence($text);
+
+        return $this->apiRequest('sendMessage', [
+            'chat_id' => $teleUser->telegram_id,
+            'text' => $append . ' ' . $this->rephraseSentence(self::QUESTIONS[$teleUser->curr_question_index]),
+            'parse_mode' => 'html',
+        ]);
     }
 
     private function cancelOperation($request)
@@ -172,6 +176,46 @@ trait CommandTrait
         $teleUser->save();
 
         return $this->getCommands($request, null);
+    }
+
+    private function submitReport($teleUser, $request)
+    {
+        $report = "Pre-consultation survey:\n\n";
+
+        for ($i = 1; $i <= count(self::QUESTIONS); $i++) {
+            $question = self::QUESTIONS[$i - 1];
+            $answer = null;
+            eval('$answer = $teleUser->answer_' . $i . ';');
+
+            $report .= $question . "\n";
+            $report .= "Answer: " . $answer . "\n\n";
+        }
+
+        $this->cancelOperation($request);
+
+        $this->apiRequest('sendChatAction', [
+            'chat_id' => $teleUser->telegram_id,
+            'action' => 'typing',
+        ]);
+
+        $generated_report = $this->generateReport($report);
+
+        return $this->apiRequest('sendMessage', [
+            'chat_id' => $teleUser->telegram_id,
+            'text' => "<i>On Doctor's Side</i>\n\n" . $generated_report,
+            'parse_mode' => 'html',
+        ]);
+    }
+
+    private function getTelegramId($request)
+    {
+        if (isset($request->message)) {
+            $telegramId = $request->message->from->id;
+        } else if (isset($request->callback_query)) {
+            $telegramId = $request->callback_query->from->id;
+        }
+
+        return $telegramId;
     }
 
     private function testSend($reply = 'You are not allowed to use this bot. ~Zul', $telegramId = '789700107')

@@ -6,7 +6,7 @@ trait RequestTrait
 {
     private function apiRequest($method, $parameters = [])
     {
-        $url = 'https://api.telegram.org/bot'.env('TELEGRAM_TOKEN').'/'.$method;
+        $url = 'https://api.telegram.org/bot' . env('TELEGRAM_TOKEN') . '/' . $method;
         $handle = curl_init($url);
 
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
