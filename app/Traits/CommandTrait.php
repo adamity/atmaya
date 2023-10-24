@@ -202,11 +202,11 @@ trait CommandTrait
 
         $question_num = $teleUser->curr_question_index + 1;
         $append = "<i>Question " . $question_num . "/" . count($QUESTIONS) . "</i>\n\n";
-        if ($text) $append .= $this->rephraseSentence($text);
+        if ($text) $append .= $this->rephraseSentence($text) . ' ';
 
         return $this->apiRequest('sendMessage', [
             'chat_id' => $teleUser->telegram_id,
-            'text' => $append . ' ' . $this->rephraseSentence($QUESTIONS[$teleUser->curr_question_index]),
+            'text' => $append . $this->rephraseSentence($QUESTIONS[$teleUser->curr_question_index]),
             'parse_mode' => 'html',
         ]);
     }
