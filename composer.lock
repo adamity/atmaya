@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "724e4d460321d5768c93cbb6fac7e8f9",
+    "content-hash": "46665c89d34d06eae5269b5933638adb",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -2139,16 +2139,16 @@
         },
         {
             "name": "orhanerday/open-ai",
-            "version": "1.1",
+            "version": "4.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/orhanerday/open-ai.git",
-                "reference": "9a9693037005fb143b1eb86a55dbb6d6e99dbdd6"
+                "reference": "896665e293689d68de4b1e9813a2e0b00a06f5ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/orhanerday/open-ai/zipball/9a9693037005fb143b1eb86a55dbb6d6e99dbdd6",
-                "reference": "9a9693037005fb143b1eb86a55dbb6d6e99dbdd6",
+                "url": "https://api.github.com/repos/orhanerday/open-ai/zipball/896665e293689d68de4b1e9813a2e0b00a06f5ef",
+                "reference": "896665e293689d68de4b1e9813a2e0b00a06f5ef",
                 "shasum": ""
             },
             "require": {
@@ -2186,7 +2186,7 @@
             ],
             "support": {
                 "issues": "https://github.com/orhanerday/open-ai/issues",
-                "source": "https://github.com/orhanerday/open-ai/tree/1.1"
+                "source": "https://github.com/orhanerday/open-ai/tree/4.8"
             },
             "funding": [
                 {
@@ -2194,7 +2194,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-01-19T13:02:16+00:00"
+            "time": "2023-06-11T09:25:47+00:00"
         },
         {
             "name": "phpoption/phpoption",

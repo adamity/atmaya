@@ -10,7 +10,17 @@ class TelegramUser extends Model
     use HasFactory;
 
     protected $table = 'telegram_users';
-    protected $fillable = ['telegram_id'];
+    protected $fillable = [
+        'telegram_id',
+        'bot_is_typing',
+        'mode',
+        'curr_question_index',
+        'answer_1',
+        'answer_2',
+        'answer_3',
+        'answer_4',
+        'answer_5'
+    ];
 
     public function bot()
     {
