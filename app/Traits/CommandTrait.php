@@ -21,13 +21,14 @@ trait CommandTrait
     //     "Are you currently taking any medications or supplements?",
     //     "Do you have any known allergies or intolerances?",
 
-    const QUESTIONS = [
-        "Can you describe the symptoms you're currently experiencing in detail?",
-        "When did these symptoms first start appearing?",
-        "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
-        "Are you currently taking any medications or do you have any known allergies?",
-        "Do you have any pre-existing medical conditions?",
-    ];
+    // PHP < 8.2 cannot use const in trait
+    // const QUESTIONS = [
+    //     "Can you describe the symptoms you're currently experiencing in detail?",
+    //     "When did these symptoms first start appearing?",
+    //     "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
+    //     "Are you currently taking any medications or do you have any known allergies?",
+    //     "Do you have any pre-existing medical conditions?",
+    // ];
 
     private function getCommands($request, $text)
     {
@@ -109,6 +110,14 @@ trait CommandTrait
 
     private function updateSession($request)
     {
+        $QUESTIONS = [
+            "Can you describe the symptoms you're currently experiencing in detail?",
+            "When did these symptoms first start appearing?",
+            "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
+            "Are you currently taking any medications or do you have any known allergies?",
+            "Do you have any pre-existing medical conditions?",
+        ];
+
         $telegramId = $this->getTelegramId($request);
         $teleUser = TelegramUser::where('telegram_id', $telegramId)->first();
         $action = $request->message->text;
@@ -122,14 +131,14 @@ trait CommandTrait
                 'parse_mode' => 'html',
             ]);
         } else if ($teleUser->mode == "preconsult") {
-            $is_valid = $this->validateResponse(self::QUESTIONS[$teleUser->curr_question_index], $action);
+            $is_valid = $this->validateResponse($QUESTIONS[$teleUser->curr_question_index], $action);
 
             if ($is_valid) {
                 eval('$teleUser->answer_' . ($teleUser->curr_question_index + 1) . ' = $action;');
                 $teleUser->curr_question_index += 1;
                 $teleUser->save();
 
-                if ($teleUser->curr_question_index == count(self::QUESTIONS)) {
+                if ($teleUser->curr_question_index == count($QUESTIONS)) {
                     $response = $this->apiRequest('sendMessage', [
                         'chat_id' => $telegramId,
                         'text' => $this->rephraseSentence("Thank you for your time. We will get back to you as soon as possible."),
@@ -150,13 +159,21 @@ trait CommandTrait
 
     private function sendQuestion($teleUser, $text = null)
     {
+        $QUESTIONS = [
+            "Can you describe the symptoms you're currently experiencing in detail?",
+            "When did these symptoms first start appearing?",
+            "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
+            "Are you currently taking any medications or do you have any known allergies?",
+            "Do you have any pre-existing medical conditions?",
+        ];
+
         $question_num = $teleUser->curr_question_index + 1;
-        $append = "<i>Question " . $question_num . "/" . count(self::QUESTIONS) . "</i>\n\n";
+        $append = "<i>Question " . $question_num . "/" . count($QUESTIONS) . "</i>\n\n";
         if ($text) $append .= $this->rephraseSentence($text);
 
         return $this->apiRequest('sendMessage', [
             'chat_id' => $teleUser->telegram_id,
-            'text' => $append . ' ' . $this->rephraseSentence(self::QUESTIONS[$teleUser->curr_question_index]),
+            'text' => $append . ' ' . $this->rephraseSentence($QUESTIONS[$teleUser->curr_question_index]),
             'parse_mode' => 'html',
         ]);
     }
@@ -180,10 +197,18 @@ trait CommandTrait
 
     private function submitReport($teleUser, $request)
     {
+        $QUESTIONS = [
+            "Can you describe the symptoms you're currently experiencing in detail?",
+            "When did these symptoms first start appearing?",
+            "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
+            "Are you currently taking any medications or do you have any known allergies?",
+            "Do you have any pre-existing medical conditions?",
+        ];
+
         $report = "Pre-consultation survey:\n\n";
 
-        for ($i = 1; $i <= count(self::QUESTIONS); $i++) {
-            $question = self::QUESTIONS[$i - 1];
+        for ($i = 1; $i <= count($QUESTIONS); $i++) {
+            $question = $QUESTIONS[$i - 1];
             $answer = null;
             eval('$answer = $teleUser->answer_' . $i . ';');
 
