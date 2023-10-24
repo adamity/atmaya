@@ -135,7 +135,7 @@ trait NLPTrait
         ];
 
         $data = [
-            'model' => 'gpt-4',
+            'model' => 'gpt-3.5-turbo',
             'messages' => $data_messages,
             'temperature' => 1.0,
             'max_tokens' => 3000,
