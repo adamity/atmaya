@@ -15,6 +15,7 @@ trait NLPTrait
     - generateReport (Generate the report based on the answers of the user from the questions, and submit it to the doctor)
     */
 
+    // Natural Language Inference
     private function validateResponse($question, $answer)
     {
         $open_ai = new OpenAi(env('OPEN_AI_API_KEY'));
@@ -52,6 +53,7 @@ trait NLPTrait
         return $bool;
     }
 
+    // Paraphrase Generation
     private function rephraseSentence($sentence)
     {
         $open_ai = new OpenAi(env('OPEN_AI_API_KEY'));
@@ -86,6 +88,7 @@ trait NLPTrait
         return $rephrased_sentence;
     }
 
+    // Question Answering
     private function customerSupport($question)
     {
         $open_ai = new OpenAi(env('OPEN_AI_API_KEY'));
@@ -120,6 +123,7 @@ trait NLPTrait
         return "👨‍💻\n\n" . $chatbot_response;
     }
 
+    // Dialogue System
     private function chatbotResponse($question)
     {
         $open_ai = new OpenAi(env('OPEN_AI_API_KEY'));
@@ -154,6 +158,7 @@ trait NLPTrait
         return "🤖\n\n" . $chatbot_response . "\n\n<b>Disclaimer: </b><i>This isn't a substitute for medical advice; consult a healthcare professional for personalized guidance.</i>";
     }
 
+    // Text Summarization
     private function generateReport($text)
     {
         $open_ai = new OpenAi(env('OPEN_AI_API_KEY'));
