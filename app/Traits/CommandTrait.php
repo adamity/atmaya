@@ -261,7 +261,7 @@ trait CommandTrait
 
         return $this->apiRequest('sendMessage', [
             'chat_id' => $teleUser->telegram_id,
-            'text' => "<i>On Doctor's Side</i>\n\n" . $generated_report,
+            'text' => "📝\n\n<i>On Doctor's Side</i>\n\n" . $generated_report,
             'parse_mode' => 'html',
         ]);
     }
