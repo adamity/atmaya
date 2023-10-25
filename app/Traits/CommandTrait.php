@@ -73,7 +73,7 @@ trait CommandTrait
 
         $params['chat_id'] = $telegramId;
         $params['parse_mode'] = 'html';
-        $params['text'] = $this->rephraseSentence("Hello! How can we assist you with our product?");
+        $params['text'] = "👨‍💻\n\n" . $this->rephraseSentence("Hello! How can we assist you with our product?");
         $params['reply_markup'] = $this->keyboardButton($option);
 
         return $this->apiRequest($method, $params);
@@ -97,7 +97,7 @@ trait CommandTrait
 
         $params['chat_id'] = $telegramId;
         $params['parse_mode'] = 'html';
-        $params['text'] = $this->rephraseSentence("Hello! Do you have any medical questions?");
+        $params['text'] = "🤖\n\n" . $this->rephraseSentence("Hello! Do you have any medical questions?") . "\n\n<b>Disclaimer: </b><i>This isn't a substitute for medical advice; consult a healthcare professional for personalized guidance.</i>";
         $params['reply_markup'] = $this->keyboardButton($option);
 
         return $this->apiRequest($method, $params);
@@ -122,7 +122,7 @@ trait CommandTrait
 
         $params['chat_id'] = $telegramId;
         $params['parse_mode'] = 'html';
-        $params['text'] = $this->rephraseSentence("Hello! We're ready to start the Pre-Consultation. You can cancel anytime if you decide not to proceed. Let's start with the first question.");
+        $params['text'] = "👩‍⚕️\n\n" . $this->rephraseSentence("Hello! We're ready to start the Pre-Consultation. You can cancel anytime if you decide not to proceed. Let's start with the first question.");
         $params['reply_markup'] = $this->keyboardButton($option);
 
         $this->apiRequest($method, $params);
@@ -174,7 +174,7 @@ trait CommandTrait
                 if ($teleUser->curr_question_index == count($QUESTIONS)) {
                     $response = $this->apiRequest('sendMessage', [
                         'chat_id' => $telegramId,
-                        'text' => $this->rephraseSentence("Thank you for your time. We will get back to you as soon as possible."),
+                        'text' => "👩‍⚕️\n\n" . $this->rephraseSentence("Thank you for your time. We will get back to you as soon as possible."),
                         'parse_mode' => 'html',
                     ]);
 
@@ -201,7 +201,7 @@ trait CommandTrait
         ];
 
         $question_num = $teleUser->curr_question_index + 1;
-        $append = "<i>Question " . $question_num . "/" . count($QUESTIONS) . "</i>\n\n";
+        $append = "👩‍⚕️\n\n<i>Question " . $question_num . "/" . count($QUESTIONS) . "</i>\n\n";
         if ($text) $append .= $this->rephraseSentence($text) . ' ';
 
         return $this->apiRequest('sendMessage', [
