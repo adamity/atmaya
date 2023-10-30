@@ -37,13 +37,13 @@ trait CommandTrait
 
         $method = "sendMessage";
 
+        // [
+        //     ["text" => "🤖 Quick Response"],
+        // ],
         $option = [
             [
                 ["text" => "👨‍💻 Customer Service"],
                 ["text" => "👩‍⚕️ Preconsult"],
-            ],
-            [
-                ["text" => "🤖 Quick Response"],
             ],
         ];
 
