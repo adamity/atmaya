@@ -17,6 +17,7 @@ class TelegramController extends Controller
 
         return $this->apiRequest('setWebhook', [
             'url' => $url,
+            'drop_pending_updates' => true,
         ]) ? ['success'] : ['something wrong'];
     }
 

@@ -137,12 +137,13 @@ trait CommandTrait
 
     private function updateSession($request)
     {
+        // "Do you have any pre-existing medical conditions?",
         $QUESTIONS = [
+            "Please provide your respiratory rate (breaths per minute), heart rate (beats per minute), blood pressure (systolic/diastolic), temperature (°C), and oxygen saturation (%) from your latest vitals check.",
             "Can you describe the symptoms you're currently experiencing in detail?",
             "When did these symptoms first start appearing?",
             "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
             "Are you currently taking any medications or do you have any known allergies?",
-            "Do you have any pre-existing medical conditions?",
         ];
 
         $telegramId = $this->getTelegramId($request);
@@ -152,15 +153,17 @@ trait CommandTrait
         if ($action == "/cancel" || $action == '❌ Cancel') {
             $response = $this->cancelOperation($request);
         } else if ($teleUser->mode == "customer_service") {
+            $message = $this->customerSupport($action);
             $response = $this->apiRequest('sendMessage', [
                 'chat_id' => $telegramId,
-                'text' => $this->customerSupport($action),
+                'text' => $message,
                 'parse_mode' => 'html',
             ]);
         } else if ($teleUser->mode == "quick_response") {
+            $message = $this->chatbotResponse($action);
             $response = $this->apiRequest('sendMessage', [
                 'chat_id' => $telegramId,
-                'text' => $this->chatbotResponse($action),
+                'text' => $message,
                 'parse_mode' => 'html',
             ]);
         } else if ($teleUser->mode == "preconsult") {
@@ -172,9 +175,10 @@ trait CommandTrait
                 $teleUser->save();
 
                 if ($teleUser->curr_question_index == count($QUESTIONS)) {
+                    $message = "👩‍⚕️\n\n" . $this->rephraseSentence("Thank you for your time. We will get back to you as soon as possible.");
                     $response = $this->apiRequest('sendMessage', [
                         'chat_id' => $telegramId,
-                        'text' => "👩‍⚕️\n\n" . $this->rephraseSentence("Thank you for your time. We will get back to you as soon as possible."),
+                        'text' => $message,
                         'parse_mode' => 'html',
                     ]);
 
@@ -192,21 +196,23 @@ trait CommandTrait
 
     private function sendQuestion($teleUser, $text = null)
     {
+        // "Do you have any pre-existing medical conditions?",
         $QUESTIONS = [
+            "Please provide your respiratory rate (breaths per minute), heart rate (beats per minute), blood pressure (systolic/diastolic), temperature (°C), and oxygen saturation (%) from your latest vitals check.",
             "Can you describe the symptoms you're currently experiencing in detail?",
             "When did these symptoms first start appearing?",
             "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
             "Are you currently taking any medications or do you have any known allergies?",
-            "Do you have any pre-existing medical conditions?",
         ];
 
         $question_num = $teleUser->curr_question_index + 1;
         $append = "👩‍⚕️\n\n<i>Question " . $question_num . "/" . count($QUESTIONS) . "</i>\n\n";
         if ($text) $append .= $this->rephraseSentence($text) . ' ';
+        $message = $append . $this->rephraseSentence($QUESTIONS[$teleUser->curr_question_index]);
 
         return $this->apiRequest('sendMessage', [
             'chat_id' => $teleUser->telegram_id,
-            'text' => $append . $this->rephraseSentence($QUESTIONS[$teleUser->curr_question_index]),
+            'text' => $message,
             'parse_mode' => 'html',
         ]);
     }
@@ -231,12 +237,13 @@ trait CommandTrait
 
     private function submitReport($teleUser, $request)
     {
+        // "Do you have any pre-existing medical conditions?",
         $QUESTIONS = [
+            "Please provide your respiratory rate (breaths per minute), heart rate (beats per minute), blood pressure (systolic/diastolic), temperature (°C), and oxygen saturation (%) from your latest vitals check.",
             "Can you describe the symptoms you're currently experiencing in detail?",
             "When did these symptoms first start appearing?",
             "On a scale of 1 to 10, where 1 is mild and 10 is severe, how would you rate your discomfort or pain?",
             "Are you currently taking any medications or do you have any known allergies?",
-            "Do you have any pre-existing medical conditions?",
         ];
 
         $report = "Pre-consultation survey:\n\n";
@@ -250,6 +257,12 @@ trait CommandTrait
             $report .= "Answer: " . $answer . "\n\n";
         }
 
+        $this->apiRequest('sendMessage', [
+            'chat_id' => $teleUser->telegram_id,
+            'text' => "Generating report in the background, please wait...",
+            'parse_mode' => 'html',
+        ]);
+        $generatedReport = $this->generateReport($report);
         $this->cancelOperation($request);
 
         $this->apiRequest('sendChatAction', [
@@ -257,11 +270,9 @@ trait CommandTrait
             'action' => 'typing',
         ]);
 
-        $generated_report = $this->generateReport($report);
-
         return $this->apiRequest('sendMessage', [
             'chat_id' => $teleUser->telegram_id,
-            'text' => "📝\n\n<i>On Doctor's Side</i>\n\n" . $generated_report,
+            'text' => "📝\n\n<i>On Doctor's Side</i>\n\n" . $generatedReport,
             'parse_mode' => 'html',
         ]);
     }
